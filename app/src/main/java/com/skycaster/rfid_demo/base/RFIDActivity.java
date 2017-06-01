@@ -45,6 +45,9 @@ public abstract class RFIDActivity extends BaseActivity {
         closeSerialPort();
         setSerialPortPath(path);
         setSerialPortBdRate(rate);
+        if(mRFIDAckReader!=null){
+            mRFIDAckReader.unRegisterAckReaderCallBack();
+        }
         try {
             mSerialPort = new SerialPort(new File(path),rate,0);
         } catch (IOException e) {
@@ -82,7 +85,11 @@ public abstract class RFIDActivity extends BaseActivity {
         }
     }
 
-    public RFIDRequestSender getRFIDRequestSender() {
+    public RFIDRequestSender getRFIDRequestSender() throws NullPointerException {
+        if(mRFIDRequestSender==null){
+            showHint("串口还未打开，请检查串口权限。");
+            throw new NullPointerException("串口还未打开，请检查串口权限。");
+        }
         return mRFIDRequestSender;
     }
 

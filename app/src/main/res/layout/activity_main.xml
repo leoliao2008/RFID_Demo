@@ -31,6 +31,93 @@
                 android:textAllCaps="false"
                 android:text="Detect Tag"/>
 
+            <Button
+                android:id="@+id/main_btn_read_tag_data"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textAllCaps="false"
+                android:text="Read Tag Data"/>
+
+            <Button
+                android:id="@+id/main_btn_write_tag_data"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textAllCaps="false"
+                android:text="Write Tag Data"/>
+
+            <Button
+                android:id="@+id/main_btn_lock_tag"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textAllCaps="false"
+                android:text="Lock Tag"/>
+
+            <Button
+                android:id="@+id/main_btn_unlock_tag"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textAllCaps="false"
+                android:text="Unlock Tag"/>
+
+            <Button
+                android:id="@+id/main_btn_kill_tag"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textAllCaps="false"
+                android:text="Kill Tag"/>
+
+            <Button
+                android:id="@+id/main_btn_reset_tag"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textAllCaps="false"
+                android:text="Reset Tag"/>
+
+            <Button
+                android:id="@+id/main_btn_reset_device"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textAllCaps="false"
+                android:text="Reset Device"/>
+
+            <Button
+                android:id="@+id/main_btn_stop_reading_tag"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textAllCaps="false"
+                android:text="Stop Reading Tag"/>
+
+            <Button
+                android:id="@+id/main_btn_restart_reading_tag"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textAllCaps="false"
+                android:text="Restart Reading Tag"/>
+
+            <Button
+                android:id="@+id/main_btn_activate_relay_on"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textAllCaps="false"
+                android:text="Turn On the Relay"/>
+
+            <Button
+                android:id="@+id/main_btn_activate_relay_off"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textAllCaps="false"
+                android:text="Turn Off the Relay"/>
+
+            <Button
+                android:id="@+id/main_btn_set_bd_rate"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textAllCaps="false"
+                android:text="Set Baud Rate"/>
+
+
+
+
 
         </LinearLayout>
     </ScrollView>

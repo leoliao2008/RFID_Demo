@@ -8,5 +8,5 @@ import android.Manifest;
 
 public interface Constants {
     String[] SYSTEM_PERMISSIONS=new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE,Manifest.permission.READ_EXTERNAL_STORAGE};
-    String[] AVAILABLE_BAUD_RATES=new String[]{"9600","115200"};
+    String[] AVAILABLE_BAUD_RATES=new String[]{"9600","19200","38400","57600","115200"};
 }

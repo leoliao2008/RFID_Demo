@@ -64,6 +64,7 @@ public class RFIDAckReader {
 
     public synchronized void unRegisterAckReaderCallBack(){
         isReading=false;
+        mRFIDAckCallBack=null;
     }
 
     private void acquirePackage(byte[] data, int len) {
@@ -100,7 +101,7 @@ public class RFIDAckReader {
                         mHandler.post(new Runnable() {
                             @Override
                             public void run() {
-                                //ack[1]表示ack后面的长度，2表示ack前面两个字节的长度，加起来就是整个ack的长度。
+                                //ack[1]表示ack后面字节的有效长度，2表示ack前面两个字节的长度，加起来就是整个ack的有效长度。
                                 byte[] result = Arrays.copyOf(ack, ack[1] + 2);
                                 if(checkIfValidate(result)){
                                     showLog("ack is validate");
@@ -132,32 +133,83 @@ public class RFIDAckReader {
     }
 
 
-    private void decipherPackage(byte[] data) {
+    private void decipherPackage(byte[] ack) {
         showLog("decipher ack:");
         StringBuilder sb=new StringBuilder();
-        switch (PackageType.getTypeByByte(data[2])){
-            case TYPE_DEVICE_VERSION://设备版本号
-                // V (0X05).(0X37)
-                sb.append("Ver ").append(String.format("%d",data[4])).append(".").append(String.format("%d",data[5]));
-                mRFIDAckCallBack.onVersionNameGet(sb.toString());
-                break;
-            case TYPE_DETECT_TAG://检测TAG
-                if((data[0]&0xff)==0xE0){//成功
-                    for(int i=0;i<12;i++){
-                        sb.append(String.format("%02X",data[5+i]&0xff)).append(" ");
+        if(mRFIDAckCallBack!=null){
+            AckBeanWithFixedLength fixedLenAck = new AckBeanWithFixedLength(ack);
+            String info=fixedLenAck.getStatusDescription();
+            boolean isSuccess=fixedLenAck.getStatusCode()==0;
+            switch (PackageType.getTypeByByte(ack[2])){
+                case TYPE_DEVICE_VERSION://设备版本号
+                    // V (0X05).(0X37)
+                    sb.append("Ver ").append(String.format("%d",ack[4])).append(".").append(String.format("%d",ack[5]));
+                    mRFIDAckCallBack.onVersionNameGet(sb.toString());
+                    break;
+                case TYPE_DETECT_TAG://检测TAG
+                    if(isLenNotFixed(ack)){//成功
+                        for(int i=0;i<12;i++){
+                            sb.append(String.format("%02X",ack[5+i]&0xff)).append(" ");
+                        }
+                        String antennaId=String.format("%02d",ack[4]);
+                        String tagId=sb.toString().trim();
+                        mRFIDAckCallBack.onTagDetected(true,antennaId,tagId,"天线号："+antennaId+" ，标签ID: "+tagId);
+                    }else {//失败
+                        mRFIDAckCallBack.onTagDetected(false,"获取失败","获取失败",fixedLenAck.getStatusDescription());
                     }
-                    String antennaId=String.format("%02d",data[4]);
-                    String tagId=sb.toString().trim();
-                    mRFIDAckCallBack.onTagDetected(true,antennaId,tagId,"天线号："+antennaId+" ，标签ID: "+tagId);
-                }else {//失败
-                    AckBeanWithFixedLength bean = new AckBeanWithFixedLength(data);
-                    mRFIDAckCallBack.onTagDetected(false,"获取失败","获取失败",bean.getStatusDescription());
-                }
-                break;
-            case TYPE_NOT_FOUND://配对失败
+                    break;
+                case TYPE_READ_TAG_DATA://读取标签一个字的数据
+                    if(isLenNotFixed(ack)){//成功
+                        //ack[7] ack[8]
+                        sb.append("写入内容：").append(toHexString(ack[7])).append(toHexString(ack[8]));
+                        mRFIDAckCallBack.onTagDataRead(true,ack[7],ack[8],sb.toString().trim());
+                    }else {
+                        //失败
+                        mRFIDAckCallBack.onTagDataRead(false,(byte) 0,(byte) 0, info);
+                    }
+                    break;
+                case TYPE_WRITE_TAG_DATA://写入一个字的数据到标签
+                    mRFIDAckCallBack.onTagDataWritten(isSuccess,info);
+                    break;
+                case TYPE_LOCK_TAG:
+                    mRFIDAckCallBack.onTagLock(isSuccess,info);
+                    break;
+                case TYPE_UNLOCK_TAG:
+                    mRFIDAckCallBack.onTagUnlock(isSuccess,info);
+                    break;
+                case TYPE_KILL_TAG:
+                    mRFIDAckCallBack.onKillTag(isSuccess,info);
+                    break;
+                case TYPE_RESET_TAG:
+                    mRFIDAckCallBack.onResetTag(isSuccess,info);
+                    break;
+                case TYPE_RESET_DEVICE:
+                    mRFIDAckCallBack.onResetDevice(isSuccess,info);
+                    break;
+                case TYPE_READING_STOP:
+                    mRFIDAckCallBack.onStopReading(isSuccess,info);
+                    break;
+                case TYPE_READING_RESTART:
+                    mRFIDAckCallBack.onRestartReading(isSuccess,info);
+                    break;
+                case TYPE_CONTROL_RELAY:
+                    mRFIDAckCallBack.onControlRelay(isSuccess,info);
+                    break;
+                case TYPE_SET_BAUD_RATE:
+                    if(isSuccess){
+                        info=info+"，设备重启后将生效。";
+                    }
+                    mRFIDAckCallBack.onSetBaudRate(isSuccess,info);
+                    break;
+                case TYPE_NOT_FOUND://配对失败
 
-                break;
+                    break;
+            }
         }
+    }
+
+    private boolean isLenNotFixed(byte[] ack){
+        return (ack[0]&0xff)==0xE0;
     }
 
 
