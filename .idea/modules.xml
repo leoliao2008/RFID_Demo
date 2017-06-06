@@ -5,6 +5,7 @@
       <module fileurl="file://$PROJECT_DIR$/RFID_Demo.iml" filepath="$PROJECT_DIR$/RFID_Demo.iml" />
       <module fileurl="file://$PROJECT_DIR$/RFID_Lib/RFID_Lib.iml" filepath="$PROJECT_DIR$/RFID_Lib/RFID_Lib.iml" />
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
+      <module fileurl="file://$PROJECT_DIR$/inertial_navi_lib/inertial_navi_lib.iml" filepath="$PROJECT_DIR$/inertial_navi_lib/inertial_navi_lib.iml" />
     </modules>
   </component>
 </project>

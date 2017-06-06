@@ -8,14 +8,14 @@ import android.widget.ArrayAdapter;
 import android.widget.ListView;
 
 import com.skycaster.rfid_demo.R;
-import com.skycaster.rfid_demo.base.RFIDActivity;
+import com.skycaster.rfid_demo.base.BaseRFIDActivity;
 import com.skycaster.rfid_demo.utils.AlertDialogUtil;
 import com.skycaster.rfid_lib.RFIDAckCallBack;
 
 import java.util.ArrayList;
 import java.util.Random;
 
-public class MainActivity extends RFIDActivity {
+public class RFIDActivity extends BaseRFIDActivity {
     private ListView mListView;
     private ArrayAdapter<String> mArrayAdapter;
     private ArrayList<String> messages=new ArrayList<>();
@@ -149,7 +149,7 @@ public class MainActivity extends RFIDActivity {
         onClick(R.id.main_btn_set_bd_rate, new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                getRFIDRequestSender().setBaudRate(MainActivity.this,String.valueOf(getSerialPortBdRate()));
+                getRFIDRequestSender().setBaudRate(RFIDActivity.this,String.valueOf(getSerialPortBdRate()));
             }
         });
     }
@@ -264,6 +264,9 @@ public class MainActivity extends RFIDActivity {
                 break;
             case R.id.menu_set_serial_port:
                 AlertDialogUtil.showSerialPortSettingView(this);
+                break;
+            case R.id.menu_test_inertial_navi_module:
+
                 break;
             default:
                 break;

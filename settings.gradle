@@ -1,1 +1,1 @@
-include ':app', ':RFID_Lib'
+include ':app', ':RFID_Lib', ':inertial_navi_lib'

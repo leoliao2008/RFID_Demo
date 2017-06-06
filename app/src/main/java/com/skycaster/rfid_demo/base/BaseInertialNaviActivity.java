@@ -2,14 +2,10 @@ package com.skycaster.rfid_demo.base;
 
 import android.content.SharedPreferences;
 
-import com.skycaster.rfid_lib.RFIDAckCallBack;
-import com.skycaster.rfid_lib.RFIDAckReader;
-import com.skycaster.rfid_lib.RFIDRequestSender;
-
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import project.SerialPort.SerialPort;
 
@@ -17,18 +13,18 @@ import project.SerialPort.SerialPort;
  * Created by 廖华凯 on 2017/5/26.
  */
 
-public abstract class RFIDActivity extends BaseActivity {
+public abstract class BaseInertialNaviActivity extends BaseActivity {
 
     private SerialPort mSerialPort;
-    private OutputStream mOutputStream;
     private InputStream mInputStream;
-    private RFIDRequestSender mRFIDRequestSender;
-    private RFIDAckReader mRFIDAckReader;
     private String mSerialPortPath;
     private int mSerialPortBdRate;
     private static final String PORT_PATH="current_serial_port_path";
     private static final String PORT_RATE="current_serial_port_baud_rate";
     private SharedPreferences mSharedPreferences;
+    private AtomicBoolean isSerialPortOpen =new AtomicBoolean(false);
+    private byte[] temp=new byte[512];
+
 
 
     @Override
@@ -36,18 +32,16 @@ public abstract class RFIDActivity extends BaseActivity {
         mSharedPreferences=getSharedPreferences("Config",MODE_PRIVATE);
         mSerialPortPath=mSharedPreferences.getString(PORT_PATH,"/dev/ttyAMA4");
         mSerialPortBdRate=mSharedPreferences.getInt(PORT_RATE,9600);
-        openSerialPort(mSerialPortPath,mSerialPortBdRate);
-        initRFIDData();
+        initInertialData();
     }
+
+    protected abstract void initInertialData();
 
 
     public boolean openSerialPort(String path, int rate) {
         closeSerialPort();
         setSerialPortPath(path);
         setSerialPortBdRate(rate);
-        if(mRFIDAckReader!=null){
-            mRFIDAckReader.unRegisterAckReaderCallBack();
-        }
         try {
             mSerialPort = new SerialPort(new File(path),rate,0);
         } catch (IOException e) {
@@ -58,12 +52,22 @@ public abstract class RFIDActivity extends BaseActivity {
             showHint("串口权限受限。");
         }
         if(mSerialPort!=null){
+            isSerialPortOpen.compareAndSet(false,true);
             mInputStream=mSerialPort.getInputStream();
-            mOutputStream=mSerialPort.getOutputStream();
-            mRFIDRequestSender=RFIDRequestSender.getInstance(mOutputStream);
-            mRFIDAckReader=RFIDAckReader.getInstance();
-            mRFIDAckReader.registerAckReaderCallback(mInputStream,initRFIDAckCallBack());
             showHint("串口打开成功，当前串口路径："+path+",波特率："+rate+"。");
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    while (isSerialPortOpen.get()){
+                        try {
+                            int len = mInputStream.read(temp);
+                            onGetSerialPortData(temp.clone(),len);
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }
+            }).start();
             return true;
         }else {
             showHint("串口打开失败：串口路径："+path+",波特率："+rate+"。");
@@ -71,10 +75,12 @@ public abstract class RFIDActivity extends BaseActivity {
         }
     }
 
-    protected abstract RFIDAckCallBack initRFIDAckCallBack();
+    protected abstract void onGetSerialPortData(byte[] data, int len);
+
 
     private void closeSerialPort(){
         if(mSerialPort!=null){
+            isSerialPortOpen.compareAndSet(true,false);
             try {
                 mSerialPort.getInputStream().close();
                 mSerialPort.getOutputStream().close();
@@ -85,17 +91,8 @@ public abstract class RFIDActivity extends BaseActivity {
         }
     }
 
-    public RFIDRequestSender getRFIDRequestSender() throws NullPointerException {
-        if(mRFIDRequestSender==null){
-            showHint("串口还未打开，请检查串口权限。");
-            throw new NullPointerException("串口还未打开，请检查串口权限。");
-        }
-        return mRFIDRequestSender;
-    }
-
     protected abstract void showHint(String message);
 
-    protected abstract void initRFIDData();
 
     public String getSerialPortPath() {
         return mSerialPortPath;
@@ -116,11 +113,14 @@ public abstract class RFIDActivity extends BaseActivity {
     }
 
     @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        if(mRFIDAckReader!=null){
-            mRFIDAckReader.unRegisterAckReaderCallBack();
-        }
+    protected void onPause() {
+        super.onPause();
         closeSerialPort();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        isSerialPortOpen.compareAndSet(false,openSerialPort(mSerialPortPath,mSerialPortBdRate));
     }
 }

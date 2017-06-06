@@ -156,8 +156,8 @@ public class RFIDRequestSender {
     }
 
     /**
-     * 设置设备波特率，执行成功后需重启设备。
-     * @param context 上下文环境
+     * 跳出一个对话窗口，设置设备波特率，执行成功后需重启设备。
+     * @param context 上下文环境，启动对话框时需用到。
      * @param currentBdRate 当前设备的波特率
      */
     public synchronized void setBaudRate(Context context,String currentBdRate){
@@ -192,6 +192,14 @@ public class RFIDRequestSender {
             }
         }).create();
         mAlertDialog.show();
+    }
+
+    /**
+     * 设置设备波特率
+     * @param baudRate 波特率
+     */
+    public synchronized void setBaudRate(BaudRate baudRate){
+        sendRequest(new RequestBean(PackageType.TYPE_SET_BAUD_RATE,new byte[]{baudRate.toByte()}));
     }
 
 

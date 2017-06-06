@@ -7,12 +7,4 @@
         android:id="@+id/menu_set_serial_port"
         app:showAsAction="never"
         />
-
-    <item
-        android:title="测试惯性导航模块"
-        android:icon="@drawable/ic_inertial_navi"
-        android:id="@+id/menu_test_inertial_navi_module"
-        app:showAsAction="always"
-        />
-
 </menu>
