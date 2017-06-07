@@ -7,6 +7,7 @@ import android.view.MenuItem;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 
+import com.skycaster.inertial_navi_lib.GPGGABean;
 import com.skycaster.rfid_demo.R;
 import com.skycaster.rfid_demo.base.BaseInertialNaviActivity;
 import com.skycaster.rfid_demo.utils.AlertDialogUtil;
@@ -18,6 +19,7 @@ public class InertialNaviActivity extends BaseInertialNaviActivity {
     private ArrayAdapter<String> mAdapter;
     private ArrayList<String> mList=new ArrayList<>();
     private Handler mHandler;
+
 
 
     @Override
@@ -46,6 +48,16 @@ public class InertialNaviActivity extends BaseInertialNaviActivity {
     }
 
     @Override
+    protected void onGetData(byte[] data, int len) {
+        updateConsole(new String(data,0,len));
+    }
+
+    @Override
+    protected void onGPGGABeanGot(GPGGABean bean) {
+        updateConsole(bean.toString());
+    }
+
+    @Override
     protected void initListeners() {
 
     }
@@ -53,6 +65,12 @@ public class InertialNaviActivity extends BaseInertialNaviActivity {
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.menu_inertial_navi_activity,menu);
+        MenuItem item = menu.findItem(R.id.menu_toggle_transmission);
+        if(isRunning.get()){
+            item.setIcon(R.drawable.ic_pause_white_48dp);
+        }else {
+            item.setIcon(R.drawable.ic_play_arrow_white_48dp);
+        }
         return true;
     }
 
@@ -65,14 +83,19 @@ public class InertialNaviActivity extends BaseInertialNaviActivity {
             case R.id.menu_set_serial_port:
                 AlertDialogUtil.showSerialPortSettingView(this);
                 break;
+            case R.id.menu_toggle_transmission:
+                isRunning.set(!isRunning.get());
+                if(isRunning.get()){
+                    startExtracting();
+                }else {
+                    stopExtracting();
+                }
+                supportInvalidateOptionsMenu();
+                break;
         }
         return true;
     }
 
-    @Override
-    protected void onGetSerialPortData(byte[] data, int len) {
-        updateConsole(new String(data,len));
-    }
 
     private void updateConsole(final String msg) {
         mHandler.post(new Runnable() {

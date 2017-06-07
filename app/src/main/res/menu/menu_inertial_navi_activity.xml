@@ -7,4 +7,11 @@
         android:id="@+id/menu_set_serial_port"
         app:showAsAction="never"
         />
+
+    <item
+        android:title="启动/关闭数据传输"
+        android:icon="@drawable/ic_play_arrow_white_48dp"
+        android:id="@+id/menu_toggle_transmission"
+        app:showAsAction="always"
+        />
 </menu>

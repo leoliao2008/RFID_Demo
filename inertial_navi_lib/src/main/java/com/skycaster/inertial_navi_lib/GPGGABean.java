@@ -7,8 +7,8 @@ import android.util.Log;
  * Created by 廖华凯 on 2017/6/6.
  */
 
-public class GPSBean {
-
+public class GPGGABean {
+    private String sourceType;
     private Location location;
     private String latitudeDirection;
     private String longitudeDirection;
@@ -20,7 +20,7 @@ public class GPSBean {
     private int DGPSStationId;
 
 
-    public GPSBean(String source){
+    public GPGGABean(String source){
         // $GPGGA,235949.042,0000.0000,N,00000.0000,E,0,00,,0.0,M,0.0,M,,0000*45
         // $GPGGA,<1>,<2>,<3>,<4>,<5>,<6>,<7>,<8>,<9>,<10>,<11>,<12>,<13>,<14>*<15><CR><LF>
         //<1> UTC时间，格式为hhmmss.sss。
@@ -41,7 +41,7 @@ public class GPSBean {
         location=new Location("");
         String[] data = source.split(",");
         try {
-
+            sourceType=data[0].substring(1);
             double s = Double.parseDouble(data[1]);
             short h= (short) (s/10000);
             short m= (short) (s/100-h*100);
@@ -168,5 +168,11 @@ public class GPSBean {
 
     public void setDGPSStationId(int DGPSStationId) {
         this.DGPSStationId = DGPSStationId;
+    }
+
+    @Override
+    public String toString() {
+        return "Source Type:"+sourceType+",Latitude="+location.getLatitude()+latitudeDirection+",Longitude="+location.getLongitude()
+                +longitudeDirection+",Altitude="+location.getAltitude()+",fix quality:"+fixQuality.toString();
     }
 }

@@ -76,6 +76,9 @@ public abstract class BaseRFIDActivity extends BaseActivity {
     protected abstract RFIDAckCallBack initRFIDAckCallBack();
 
     private void closeSerialPort(){
+        if(mRFIDAckReader!=null){
+            mRFIDAckReader.unRegisterAckReaderCallBack();
+        }
         if(mSerialPort!=null){
             try {
                 mSerialPort.getInputStream().close();
@@ -120,16 +123,17 @@ public abstract class BaseRFIDActivity extends BaseActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        if(mRFIDAckReader!=null){
-            mRFIDAckReader.unRegisterAckReaderCallBack();
+        if(isSerialPortOpen.compareAndSet(true,false)){
+            closeSerialPort();
         }
-        closeSerialPort();
     }
 
     @Override
     protected void onPause() {
         super.onPause();
-        closeSerialPort();
+        if(isSerialPortOpen.compareAndSet(true,false)){
+            closeSerialPort();
+        }
     }
 
     @Override

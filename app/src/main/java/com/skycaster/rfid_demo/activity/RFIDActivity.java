@@ -1,5 +1,6 @@
 package com.skycaster.rfid_demo.activity;
 
+import android.content.Intent;
 import android.support.v7.app.ActionBar;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -266,7 +267,7 @@ public class RFIDActivity extends BaseRFIDActivity {
                 AlertDialogUtil.showSerialPortSettingView(this);
                 break;
             case R.id.menu_test_inertial_navi_module:
-
+                startActivity(new Intent(this,InertialNaviActivity.class));
                 break;
             default:
                 break;

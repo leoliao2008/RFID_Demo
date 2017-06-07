@@ -50,7 +50,7 @@ public class RFIDAckReader {
                         try {
                             final int len = inputStream.read(temp);
                             if(len>0){
-                                acquirePackage(temp,len);
+                                extractData(temp,len);
                             }
                         } catch (IOException e) {
                             e.printStackTrace();
@@ -67,7 +67,7 @@ public class RFIDAckReader {
         mRFIDAckCallBack=null;
     }
 
-    private void acquirePackage(byte[] data, int len) {
+    private void extractData(byte[] data, int len) {
         StringBuilder sb=new StringBuilder();
         for(int i=0;i<len;i++){
             sb.append(toHexString(data[i]));
