@@ -12,36 +12,42 @@ import java.util.regex.Pattern;
  */
 
 public class NaviDataExtractor {
-    private static NaviDataExtractor mExtractor=new NaviDataExtractor();
-    public static NaviDataExtractor getInstance(){
-        return mExtractor;
-    }
     private static int DATA_LEN=512;
-    private byte[] temp=new byte[DATA_LEN];
-    private byte[] data=new byte[DATA_LEN];
-    private AtomicBoolean isRunning=new AtomicBoolean(false);
-    private boolean isHeadConfirmed;
-    private int index;
+    private static byte[] temp=new byte[DATA_LEN];
+    private static byte[] GPGGAData =new byte[DATA_LEN];
+    private static AtomicBoolean isExtractingGPGGAData =new AtomicBoolean(false);
+    private static boolean isGPGGAHeadConfirmed;
+    private static int index;
     private NaviDataExtractor(){}
 
-    public synchronized void startExtracting(final InputStream inputStream, final CallBack callBack){
-        isRunning.compareAndSet(false,true);
+
+    public static synchronized void startExtractingGPGGAData(final InputStream inputStream, final CallBack callBack){
+        isExtractingGPGGAData.compareAndSet(false,true);
         new Thread(new Runnable() {
             @Override
             public void run() {
-                while (isRunning.get()){
+                try {
+                    inputStream.skip(9999);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                while (isExtractingGPGGAData.get()){
                     try {
+//                        showLog("InputStream Available:"+inputStream.available());
                         int len = inputStream.read(temp);
-                        showLog("len="+len);
+//                        showLog("len="+len);
                         // $GPGGA,235949.042,0000.0000,N,00000.0000,E,0,00,,0.0,M,0.0,M,,0000*45
+                        if(len<1){
+                            continue;
+                        }
                         for(int i=0;i<len;i++){
-                            if(!isHeadConfirmed){
+                            if(!isGPGGAHeadConfirmed){
 //                                showLog("Ack Head not confirmed.");
                                 if(temp[i]=='$'){
-                                    isHeadConfirmed=true;
+                                    isGPGGAHeadConfirmed =true;
 //                                    showLog("Ack Head is confirmed!");
                                     index=0;
-                                    data[index++]=temp[i];
+                                    GPGGAData[index++]=temp[i];
                                 }else {
 //                                    char c = (char) temp[i];
 //                                    showLog(String.valueOf(c)+"is forfeit.");
@@ -49,23 +55,23 @@ public class NaviDataExtractor {
                             }else {
                                 if(temp[i]=='$'){
 //                                    showLog("tail is reached.");
-                                    byte[] clone = data.clone();
+                                    byte[] clone = GPGGAData.clone();
 //                                    showHint(toHexString(clone,index));
                                     String source = new String(clone, 0, index);
 //                                    showLog("GPS source: "+source);
 //                                        onGpsBeanGot(new GPGGABean(source));
                                     if(isSourceValid(source)){
-//                                        showLog("source data is valid.");
+//                                        showLog("source GPGGAData is valid.");
                                         callBack.onGetGPGGABean(new GPGGABean(source));
                                     }else {
-                                        showLog("source data is not valid.");
+                                        showLog("GPGGA data is not valid. Data is abandon.");
                                     }
                                     index=0;
                                 }
-                                data[index++]=temp[i];
+                                GPGGAData[index++]=temp[i];
                                 if(index==DATA_LEN-1){
                                     index=0;
-                                    showLog("reset index to 0");
+                                    showLog("data len exceed boundary, reset index to 0");
                                 }
                             }
                         }
@@ -78,8 +84,8 @@ public class NaviDataExtractor {
         }).start();
     }
 
-    private boolean isSourceValid(String source) {
-        showLog("begin to check if source valid...");
+    private static synchronized boolean isSourceValid(String source) {
+//        showLog("begin to check if source valid...");
         int checkSum=0;
         String[] data = source.split(Pattern.quote("*"));
         if(data.length==2){
@@ -92,20 +98,20 @@ public class NaviDataExtractor {
                 for(char c:chars){
                     checkSum^=c;
                 }
-                showLog("check sum="+Integer.toHexString(checkSum)+" vs source ="+data[1]);
-                return Integer.toHexString(checkSum).equals(data[1]);
+//                showLog("check sum="+Integer.toHexString(checkSum)+" vs source ="+data[1]);
+                return Integer.toHexString(checkSum).equalsIgnoreCase(data[1]);
             }
         }
         return false;
     }
 
-    private void showLog(String msg) {
-        Log.e(getClass().getSimpleName(),msg);
+    private static void showLog(String msg) {
+        Log.e("NaviDataExtractor",msg);
     }
 
 
-    public boolean stopExtracting(){
-        return isRunning.compareAndSet(true,false);
+    public static synchronized boolean stopExtractingGPGGAData(){
+        return isExtractingGPGGAData.compareAndSet(true,false);
     }
 
 

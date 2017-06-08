@@ -34,7 +34,7 @@ public class InertialNaviActivity extends BaseInertialNaviActivity {
     }
 
     @Override
-    protected void initInertialData() {
+    protected void initRegularData() {
         mAdapter=new ArrayAdapter<String>(this,android.R.layout.simple_list_item_1,mList);
         mListView.setAdapter(mAdapter);
 
@@ -47,10 +47,6 @@ public class InertialNaviActivity extends BaseInertialNaviActivity {
         mHandler=new Handler();
     }
 
-    @Override
-    protected void onGetData(byte[] data, int len) {
-        updateConsole(new String(data,0,len));
-    }
 
     @Override
     protected void onGPGGABeanGot(GPGGABean bean) {

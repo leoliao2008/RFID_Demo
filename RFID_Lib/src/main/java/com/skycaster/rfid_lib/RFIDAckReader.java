@@ -46,6 +46,11 @@ public class RFIDAckReader {
             new Thread(new Runnable() {
                 @Override
                 public void run() {
+//                    try {
+//                        inputStream.skip(4095);
+//                    } catch (IOException e) {
+//                        e.printStackTrace();
+//                    }
                     while (isReading){
                         try {
                             final int len = inputStream.read(temp);
