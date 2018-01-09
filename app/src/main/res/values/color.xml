@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="colorPrimary">#656565</color>
+    <color name="colorPrimaryTransparent">#90656565</color>
+    <color name="colorPrimaryDark">#3C3F41</color>
+    <!--<color name="colorPrimary">#90D033</color>-->
+    <!--<color name="colorPrimaryTransparent">#9090D033</color>-->
+    <!--<color name="colorPrimaryDark">#85B84F</color>-->
+    <color name="colorAccent">#537B9B</color>
+    <color name="colorBlack">#000</color>
+    <color name="colorBlackTransparent">#90000000</color>
+    <color name="colorWhite">#fff</color>
+    <color name="colorWhiteTransparent">#80ffffff</color>
+    <color name="colorGrey">#989898</color>
+    <color name="colorGreyTransparent">#95989898</color>
+    <color name="colorNaviBg">#DFD8D2</color>
+    <color name="colorRed">#FF0000</color>
+    <color name="colorSkyBlue">#2886DD</color>
+    <color name="colorSkyBlueLight">#502886DD</color>
+    <color name="colorYellow">#FFFF00</color>
+    <color name="darcula">#45494A</color>
+    <color name="darculaTransparent">#9045494A</color>
+    <color name="colorDefault">#FAFAFA</color>
+    <color name="colorBlue">#4277FD</color>
+    <color name="colorBg">#FEE99E</color>
+    <color name="colorWhiteLight">#50ffffff</color>
+    <color name="colorGpsFix">#FF6004</color>
+    <color name="colorDGPS_FIX">#FB9804</color>
+    <color name="colorFLOAT_RTK">#90C451</color>
+    <color name="colorREAL_TIME_KINEMATIC">#007029</color>
+    <color name="QUALITY_INVALID">#FF0000</color>
+</resources>

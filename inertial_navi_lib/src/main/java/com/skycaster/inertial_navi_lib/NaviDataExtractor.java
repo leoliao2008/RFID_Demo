@@ -2,6 +2,11 @@ package com.skycaster.inertial_navi_lib;
 
 import android.util.Log;
 
+import com.skycaster.inertial_navi_lib.GPGGA.GPGGABean;
+import com.skycaster.inertial_navi_lib.GPGGA.TbGNGGABean;
+import com.skycaster.inertial_navi_lib.GPGSA.GPGSABean;
+import com.skycaster.inertial_navi_lib.GPGSV.GPGSVBean;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -21,7 +26,7 @@ public class NaviDataExtractor {
     private NaviDataExtractor(){}
 
 
-    public static synchronized void startExtractingGPGGAData(final InputStream inputStream, final CallBack callBack){
+    public static synchronized void startExtractingGPGGAData(final InputStream inputStream, final NaviDataExtractorCallBack callBack){
         isExtractingGPGGAData.compareAndSet(false,true);
         new Thread(new Runnable() {
             @Override
@@ -40,42 +45,7 @@ public class NaviDataExtractor {
                         if(len<1){
                             continue;
                         }
-                        for(int i=0;i<len;i++){
-                            if(!isGPGGAHeadConfirmed){
-//                                showLog("Ack Head not confirmed.");
-                                if(temp[i]=='$'){
-                                    isGPGGAHeadConfirmed =true;
-//                                    showLog("Ack Head is confirmed!");
-                                    index=0;
-                                    GPGGAData[index++]=temp[i];
-                                }else {
-//                                    char c = (char) temp[i];
-//                                    showLog(String.valueOf(c)+"is forfeit.");
-                                }
-                            }else {
-                                if(temp[i]=='$'){
-//                                    showLog("tail is reached.");
-                                    byte[] clone = GPGGAData.clone();
-//                                    showHint(toHexString(clone,index));
-                                    String source = new String(clone, 0, index);
-//                                    showLog("GPS source: "+source);
-//                                        onGpsBeanGot(new GPGGABean(source));
-                                    if(isSourceValid(source)){
-//                                        showLog("source GPGGAData is valid.");
-                                        callBack.onGetGPGGABean(new GPGGABean(source));
-                                    }else {
-                                        showLog("GPGGA data is not valid. Data is abandon.");
-                                    }
-                                    index=0;
-                                }
-                                GPGGAData[index++]=temp[i];
-                                if(index==DATA_LEN-1){
-                                    index=0;
-                                    showLog("data len exceed boundary, reset index to 0");
-                                }
-                            }
-                        }
-
+                       decipherData(temp,len,callBack);
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
@@ -84,8 +54,65 @@ public class NaviDataExtractor {
         }).start();
     }
 
+    public static synchronized void decipherData(byte[] temp, int len, final NaviDataExtractorCallBack callBack){
+        for(int i=0;i<len;i++){
+            if(!isGPGGAHeadConfirmed){
+//                                showLog("Ack Head not confirmed.");
+                if(temp[i]=='$'){
+                    isGPGGAHeadConfirmed =true;
+//                                    showLog("Ack Head is confirmed!");
+                    index=0;
+                    GPGGAData[index++]=temp[i];
+                }else {
+//                                    char c = (char) temp[i];
+//                                    showLog(String.valueOf(c)+"is forfeit.");
+                }
+            }else {
+                if(temp[i]=='$'){
+//                                    showLog("tail is reached.");
+                    byte[] clone = GPGGAData.clone();
+//                                    showHint(toHexString(clone,index));
+                    String source = new String(clone, 0, index);
+//                    showLog("Source Get: "+source);
+                    if(source.contains("GNGGA")){//新增专门解析天宝北斗模块的逻辑
+                        //天宝的比较特殊，不用校验了，直接使用
+                        callBack.onGetTBGNGGABean(new TbGNGGABean(source));
+                    }else if(source.contains("GPGGA")){
+                        if(isSourceValid(source)){//先校验一下
+                            callBack.onGetGPGGABean(new GPGGABean(source));
+                        }else {
+                            showLog("GPGGA data is not valid. Data is abandon.");
+                        }
+                    }else if(source.contains("GPGSV")){
+                        if(isSourceValid(source)){//先校验一下
+                            GPGSVBean.getInstance().decipher(source,callBack);
+                        }else {
+                            showLog("GPGSV data is not valid. Data is abandon.");
+                        }
+                    }else if(source.contains("GPGSA")||source.contains("GNGSA")){
+//                        if(isSourceValid(source)){//先校验一下
+//                            callBack.onGetGPGSABean(new GPGSABean(source));
+//                        }else {
+//                            showLog("GPGSA data is not valid. Data is abandon.");
+//                        }
+                        //不用校验了，直接使用
+                        callBack.onGetGPGSABean(new GPGSABean(source));
+                    }
+                    index=0;
+                }
+                GPGGAData[index++]=temp[i];
+                if(index==DATA_LEN-1){
+                    index=0;
+                    showLog("data len exceed boundary, reset index to 0");
+                }
+            }
+        }
+
+
+    }
+
     private static synchronized boolean isSourceValid(String source) {
-//        showLog("begin to check if source valid...");
+        showLog("begin to check if source valid...");
         int checkSum=0;
         String[] data = source.split(Pattern.quote("*"));
         if(data.length==2){
@@ -98,8 +125,8 @@ public class NaviDataExtractor {
                 for(char c:chars){
                     checkSum^=c;
                 }
-//                showLog("check sum="+Integer.toHexString(checkSum)+" vs source ="+data[1]);
-                return Integer.toHexString(checkSum).equalsIgnoreCase(data[1]);
+                showLog("check sum="+String.format("%X",checkSum)+" vs source ="+data[1].trim());
+                return Integer.toHexString(checkSum).equalsIgnoreCase(data[1].trim());
             }
         }
         return false;
@@ -115,7 +142,5 @@ public class NaviDataExtractor {
     }
 
 
-    public interface CallBack{
-        void onGetGPGGABean(GPGGABean bean);
-    }
+
 }

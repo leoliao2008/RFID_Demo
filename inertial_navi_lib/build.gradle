@@ -22,7 +22,7 @@ android {
 }
 
 def SDK_NAME = "Inertial_Navi_Lib";//jar包的名称
-def SDK_VERSION = "_V1.0";//jar包的版本号
+def SDK_VERSION = "_V2.1";//jar包的版本号
 def sdkDestinationPath = "build";
 def zipFile = file('build/intermediates/bundles/default/classes.jar')
 

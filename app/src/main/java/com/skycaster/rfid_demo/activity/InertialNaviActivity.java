@@ -7,7 +7,7 @@ import android.view.MenuItem;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 
-import com.skycaster.inertial_navi_lib.GPGGABean;
+import com.skycaster.inertial_navi_lib.GPGGA.GPGGABean;
 import com.skycaster.rfid_demo.R;
 import com.skycaster.rfid_demo.base.BaseInertialNaviActivity;
 import com.skycaster.rfid_demo.utils.AlertDialogUtil;

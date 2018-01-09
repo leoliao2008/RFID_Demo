@@ -2,8 +2,9 @@ package com.skycaster.rfid_demo.base;
 
 import android.content.SharedPreferences;
 
-import com.skycaster.inertial_navi_lib.GPGGABean;
+import com.skycaster.inertial_navi_lib.GPGGA.GPGGABean;
 import com.skycaster.inertial_navi_lib.NaviDataExtractor;
+import com.skycaster.inertial_navi_lib.NaviDataExtractorCallBack;
 
 import java.io.File;
 import java.io.IOException;
@@ -67,7 +68,7 @@ public abstract class BaseInertialNaviActivity extends BaseActivity {
 
     protected void startExtracting() {
         isRunning.compareAndSet(false,true);
-        NaviDataExtractor.startExtractingGPGGAData(mInputStream,new NaviDataExtractor.CallBack() {
+        NaviDataExtractor.startExtractingGPGGAData(mInputStream,new NaviDataExtractorCallBack() {
             @Override
             public void onGetGPGGABean(GPGGABean bean) {
                 onGPGGABeanGot(bean);

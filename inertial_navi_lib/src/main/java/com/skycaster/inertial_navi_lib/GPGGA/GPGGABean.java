@@ -1,6 +1,7 @@
-package com.skycaster.inertial_navi_lib;
+package com.skycaster.inertial_navi_lib.GPGGA;
 
 import android.location.Location;
+import android.text.TextUtils;
 import android.util.Log;
 
 /**
@@ -18,6 +19,8 @@ public class GPGGABean {
     private float geoidHeight;
     private int secSinceLastUpdate;
     private int DGPSStationId;
+    private long mTimeMillis;
+    private String rawGpggaString;
 
 
     public GPGGABean(String source){
@@ -38,23 +41,52 @@ public class GPGGABean {
         //<13> 差分GPS数据期限（RTCM SC-104），最后设立RTCM传送的秒数量。
         //<14> 差分参考基站标号，从0000到1023（前导位数不足则补0）。
         //<15> 校验和。
+        rawGpggaString=source;
         location=new Location("");
         String[] data = source.split(",");
         try {
             sourceType=data[0].substring(1);
-            double s = Double.parseDouble(data[1]);
-            short h= (short) (s/10000);
-            short m= (short) (s/100-h*100);
-            double milliSec=(s-h*10000-m*100)*1000;
-            milliSec=Math.ceil(milliSec);
-            long timeMillis=(long) (h*3600*1000+m*60*1000+milliSec);
-            location.setTime(timeMillis);
+            try {
+                double s = Double.parseDouble(data[1]);
+                short h= (short) (s/10000);
+                short m= (short) (s/100-h*100);
+                double milliSec=(s-h*10000-m*100)*1000;
+                milliSec=Math.ceil(milliSec);
+                mTimeMillis = (long) (h*3600*1000+m*60*1000+milliSec);
+            }catch (NumberFormatException e){
+                mTimeMillis=0;
+            }
+            location.setTime(mTimeMillis);
             //<2> 纬度，格式为ddmm.mmmm（前导位数不足则补0）。
-            location.setLatitude(Double.parseDouble(data[2])/100);
-            latitudeDirection=data[3];
+            try {
+                double lat = Double.parseDouble(data[2]);
+                int lat_h= (int) (lat/100);
+                double lat_m=lat-lat_h*100;
+                location.setLatitude(lat_h+lat_m/60);
+            }catch (NumberFormatException e){
+                location.setLatitude(0);
+            }
+            if(!TextUtils.isEmpty(data[3])){
+                latitudeDirection=data[3];
+            }else {
+                latitudeDirection="N";
+            }
+
             //<4> 经度，格式为dddmm.mmmm（前导位数不足则补0）。
-            location.setLongitude(Double.parseDouble(data[4])/100);
-            longitudeDirection=data[5];
+            try {
+                double lng = Double.parseDouble(data[4]);
+                int lng_h= (int) (lng/100);
+                double lng_m=lng-lng_h*100;
+                location.setLongitude(lng_h+lng_m/60);
+            }catch (NumberFormatException e){
+                location.setLongitude(0);
+            }
+            if(!TextUtils.isEmpty(data[5])){
+                longitudeDirection=data[5];
+            }else {
+                longitudeDirection="E";
+            }
+
             //Fix quality: 0 = invalid
             //1 = GPS fix (SPS)
             //2 = DGPS fix
@@ -64,20 +96,36 @@ public class GPGGABean {
             //6 = estimated (dead reckoning) (2.3 feature)
             //7 = Manual input mode
             //8 = Simulation mode
-            int qualityCode=Integer.valueOf(data[6]);
-            if(qualityCode>=0&&qualityCode<=8){
-                fixQuality=FixQuality.values()[qualityCode];
-            }else {
+            try {
+                int qualityCode=Integer.valueOf(data[6]);
+                if(qualityCode>=0&&qualityCode<=8){
+                    fixQuality=FixQuality.values()[qualityCode];
+                }else {
+                    fixQuality=FixQuality.values()[9];
+                }
+            }catch (NumberFormatException e){
                 fixQuality=FixQuality.values()[9];
             }
-            satelliteCount=Integer.parseInt(data[7]);
+            try {
+                satelliteCount=Integer.parseInt(data[7]);
+            }catch (NumberFormatException e){
+                satelliteCount=0;
+            }
             try {
                 horizontalDelusion=Float.parseFloat(data[8]);
             }catch (NumberFormatException e){
                 horizontalDelusion=0;
             }
-            location.setAltitude(Float.parseFloat(data[9]));
-            geoidHeight=Float.parseFloat(data[11]);
+            try {
+                location.setAltitude(Float.parseFloat(data[9]));
+            }catch (NumberFormatException e){
+                location.setAltitude(0);
+            }
+            try {
+                geoidHeight=Float.parseFloat(data[11]);
+            }catch (NumberFormatException e){
+                geoidHeight=0;
+            }
             try {
                 secSinceLastUpdate=Integer.parseInt(data[13]);
             }catch (NumberFormatException e){
@@ -168,6 +216,10 @@ public class GPGGABean {
 
     public void setDGPSStationId(int DGPSStationId) {
         this.DGPSStationId = DGPSStationId;
+    }
+
+    public String getRawGpggaString() {
+        return rawGpggaString;
     }
 
     @Override

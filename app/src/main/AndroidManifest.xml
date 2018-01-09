@@ -26,6 +26,9 @@
         <activity
             android:name=".activity.InertialNaviActivity"
             android:screenOrientation="userLandscape"/>
+        <activity android:name=".activity.SatViewActivity"
+            android:screenOrientation="portrait">
+        </activity>
     </application>
 
 </manifest>
