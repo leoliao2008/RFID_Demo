@@ -54,6 +54,7 @@ public class GPGSABean {
         }
         //把*及后面的验证码截掉
         String substring = mSrcString.substring(0, endIndex);
+        //按“，”分段（应该有18段）
         String[] splits = substring.split(Pattern.quote(","));
         //如果格式不符合标准，不再跑下面的逻辑
         if(splits.length!=18){
@@ -61,7 +62,17 @@ public class GPGSABean {
         }
         isValid=true;
         //字段1：定位模式，A=自动2D/3D，M=手动2D/3D
-        mMode=splits[1].equals("A")?GPGSAMode.AUTO:GPGSAMode.MANUAL;
+        switch (splits[1]){
+            case "A":
+                mMode=GPGSAMode.AUTO;
+                break;
+            case "M":
+                mMode=GPGSAMode.MANUAL;
+                break;
+            default:
+                mMode=GPGSAMode.ERROR;
+                break;
+        }
         //字段2：定位类型，1=未定位，2=2D定位，3=3D定位
         switch (splits[2]){
             case "2":
@@ -70,7 +81,7 @@ public class GPGSABean {
             case "3":
                 mType=GPGSAType.FIX3D;
                 break;
-            default://"1"
+            default://"1"或出错
                 mType=GPGSAType.UNFIX;
                 break;
         }
@@ -85,11 +96,11 @@ public class GPGSABean {
             }
         }
         //PDOP综合位置精度因子（0.5 - 99.9）
-        mPdop=Float.valueOf(splits[15]);
+        mPdop=TextUtils.isEmpty(splits[15])?0:Float.valueOf(splits[15]);
         //HDOP水平精度因子（0.5 - 99.9）
-        mHdop=Float.valueOf(splits[16]);
+        mHdop=TextUtils.isEmpty(splits[16])?0:Float.valueOf(splits[16]);
         //VDOP垂直精度因子（0.5 - 99.9）
-        mVdop=Float.valueOf(splits[17]);
+        mVdop=TextUtils.isEmpty(splits[17])?0:Float.valueOf(splits[17]);
     }
 
     public GPGSAMode getMode() {

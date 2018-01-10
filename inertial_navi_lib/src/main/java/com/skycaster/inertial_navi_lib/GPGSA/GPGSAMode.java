@@ -6,5 +6,5 @@ package com.skycaster.inertial_navi_lib.GPGSA;
  */
 
 public enum GPGSAMode {
-    AUTO,MANUAL
+    AUTO,MANUAL,ERROR
 }

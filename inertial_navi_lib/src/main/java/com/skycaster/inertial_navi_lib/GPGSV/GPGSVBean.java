@@ -68,11 +68,11 @@ public class GPGSVBean {
         mCallBack=callBack;
 
         //字段1：本次GSV语句的总数目（1 - 3）
-        int totalBlock=Integer.valueOf(splits[1]);
+        int totalBlock=TextUtils.isEmpty(splits[1])?1:Integer.valueOf(splits[1]);
         //字段2：本条GSV语句是本次GSV语句的第几条（1 - 3）
-        int currentBlock=Integer.valueOf(splits[2]);
+        int currentBlock=TextUtils.isEmpty(splits[2])?1:Integer.valueOf(splits[2]);
         //字段3：当前可见卫星总数（00 - 12）（前导位数不足则补0）
-        int satCount=Integer.valueOf(splits[3]);
+        int satCount=TextUtils.isEmpty(splits[3])?0:Integer.valueOf(splits[3]);
 
         if(mCurrentBlock==-1&&mTotalBlock==-1&&mSatCount==-1){
             //如果是卫星定位的首批数据，直接写入
@@ -94,9 +94,9 @@ public class GPGSVBean {
     }
 
     private synchronized void updateGPGSVBean(String[] splits){
-        mTotalBlock=Integer.valueOf(splits[1]);
-        mCurrentBlock=Integer.valueOf(splits[2]);
-        mSatCount=Integer.valueOf(splits[3]);
+        mTotalBlock=TextUtils.isEmpty(splits[1])?1:Integer.valueOf(splits[1]);
+        mCurrentBlock=TextUtils.isEmpty(splits[2])?1:Integer.valueOf(splits[2]);
+        mSatCount=TextUtils.isEmpty(splits[3])?0:Integer.valueOf(splits[3]);
         //fill prns
         for(int i=1;i<5&&(mPrnIndex<mSatCount);i++){//mPrnIndex<mSatCount ：PRN数目和卫星数目是一样的。
             int index=i*4;
